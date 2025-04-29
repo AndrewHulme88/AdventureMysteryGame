@@ -1,11 +1,18 @@
 using UnityEngine;
 
-public class Interactable : MonoBehaviour
+public class Interactable : MonoBehaviour, IInteractable
 {
+    [TextArea]
     public string message = "You find something.";
+    public bool requireWalk = false;
 
-    public void OnInteract()
+    public void Interact()
     {
-        Debug.Log(message);
+        InteractionUI.Instance.ShowPopup(message);
+    }
+
+    public string GetDescription()
+    {
+        return message;
     }
 }
