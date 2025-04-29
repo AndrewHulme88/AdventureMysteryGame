@@ -43,7 +43,13 @@ public class InteractionUI : MonoBehaviour
 
     public void HidePopup()
     {
+        popupText.text = "";
         popupPanel.SetActive(false);
         isPopupActive = false;
+    }
+
+    public bool IsPopupActive()
+    {
+        return isPopupActive;
     }
 }

@@ -46,6 +46,11 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
+        if((DialogueUI.Instance != null && DialogueUI.Instance.IsDialogueActive()) || (InteractionUI.Instance != null && InteractionUI.Instance.IsPopupActive()))
+        {
+            return;
+        }
+
         if(Input.GetMouseButtonDown(0))
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
