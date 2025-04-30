@@ -27,6 +27,12 @@ public class InventoryManager : MonoBehaviour
         }
     }
 
+    public void RemoveItem(string itemId)
+    {
+        collectedItemIds.Remove(itemId);
+        Debug.Log("Item removed " + itemId);
+    }
+
     public bool HasItem(string itemId)
     {
         return collectedItemIds.Contains(itemId);

@@ -7,12 +7,31 @@ public class Interactable : MonoBehaviour
     public bool requireWalk = false;
     public DialogueTree dialogueTree;
 
+    [Header("Flag Conditions")]
+    public string requiredFlag = "";
+    public bool requireFlagToBeTrue = false;
+    public string blockedMessage = "Nothing happened...";
+
+    [Header("Set Flags On Interaction")]
+    public string[] flagsToSet;
+
     public virtual void Interact()
     {
         if (DialogueUI.Instance != null && DialogueUI.Instance.dialoguePanel.activeInHierarchy)
         {
             Debug.Log("Dialogue already active, ignoring new interaction.");
             return;
+        }
+
+        if(!string.IsNullOrEmpty(requiredFlag))
+        {
+            bool hasFlag = ProgressManager.Instance.HasFlag(requiredFlag);
+
+            if(hasFlag != requireFlagToBeTrue)
+            {
+                InteractionUI.Instance.ShowPopup(blockedMessage);
+                return;
+            }
         }
 
         if (dialogueTree != null)
@@ -28,6 +47,15 @@ public class Interactable : MonoBehaviour
             else
             {
                 Debug.Log("No interaction text is set");
+            }
+        }
+
+        foreach(string flag in flagsToSet)
+        {
+            if(!string.IsNullOrWhiteSpace(flag))
+            {
+                ProgressManager.Instance.SetFlag(flag, true);
+                Debug.Log("HOHoh");
             }
         }
     }

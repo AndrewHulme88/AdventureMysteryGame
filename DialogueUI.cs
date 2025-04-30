@@ -52,6 +52,15 @@ public class DialogueUI : MonoBehaviour
 
         foreach(var choice in choices)
         {
+            if(!string.IsNullOrEmpty(choice.requiredFlag))
+            {
+                bool flagState = ProgressManager.Instance.HasFlag(choice.requiredFlag);
+                if(flagState != choice.requiredFlagToBeTrue)
+                {
+                    continue;
+                }
+            }
+
             GameObject buttonObj = Instantiate(choiceButtonPrefab, choicesContainer);
             TMP_Text buttonText = buttonObj.GetComponentInChildren<TMP_Text>();
             buttonText.text = choice.choiceText;
