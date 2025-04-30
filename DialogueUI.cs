@@ -1,15 +1,18 @@
 using UnityEngine;
 using TMPro;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class DialogueUI : MonoBehaviour
 {
     public static DialogueUI Instance { get; private set; }
 
-    [SerializeField] GameObject dialoguePanel;
-    [SerializeField] TMP_Text dialogueText;
+    public GameObject dialoguePanel;
+    public TMP_Text speakerText;
+    public TMP_Text dialogueText;
+    [SerializeField] Transform choicesContainer;
+    [SerializeField] GameObject choiceButtonPrefab;
 
-    private Queue<string> dialogueQueue = new Queue<string>();
     private bool isDialogueActive = false;
 
     private void Awake()
@@ -27,48 +30,45 @@ public class DialogueUI : MonoBehaviour
         dialoguePanel.SetActive(false);
     }
 
-    private void Update()
+    public void ShowDialogue(string speaker, string text)
     {
-        if(isDialogueActive && (Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.Space)))
-        {
-            DisplayNextLine();
-        }
-    }
-
-    public void StartDialogue(string[] lines)
-    {
-        EndDialogue();
-        dialogueQueue.Clear();
-
-        foreach(var line in lines)
-        {
-            dialogueQueue.Enqueue(line);
-        }
-
         dialoguePanel.SetActive(true);
-        isDialogueActive = true;
-
-        DisplayNextLine();
+        speakerText.text = speaker;
+        dialogueText.text = text;
     }
 
-    private void DisplayNextLine()
+    public void HideDialogue()
     {
-        if(dialogueQueue.Count == 0)
-        {
-            EndDialogue();
-            return;
-        }
-
-        string nextLine = dialogueQueue.Dequeue();
-        dialogueText.text = nextLine;
-    }
-
-    public void EndDialogue()
-    {
-        dialogueQueue.Clear();
         dialogueText.text = "";
+        speakerText.text = "";
         dialoguePanel.SetActive(false);
         isDialogueActive = false;
+        ClearChoices();
+    }
+
+    public void ShowChoices(DialogueChoice[] choices, System.Action<string> onChoiceSelected)
+    {
+        ClearChoices();
+
+        foreach(var choice in choices)
+        {
+            GameObject buttonObj = Instantiate(choiceButtonPrefab, choicesContainer);
+            TMP_Text buttonText = buttonObj.GetComponentInChildren<TMP_Text>();
+            buttonText.text = choice.choiceText;
+
+            Button button = buttonObj.GetComponent<Button>();
+            string nextNodeId = choice.nextNodeId;
+
+            button.onClick.AddListener(() => onChoiceSelected(nextNodeId));
+        }
+    }
+
+    public void ClearChoices()
+    {
+        foreach (Transform child in choicesContainer)
+        {
+            Destroy(child.gameObject);
+        }
     }
 
     public bool IsDialogueActive()
