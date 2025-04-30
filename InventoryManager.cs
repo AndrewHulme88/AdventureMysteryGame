@@ -6,6 +6,7 @@ public class InventoryManager : MonoBehaviour
     public static InventoryManager Instance { get; private set; }
 
     private HashSet<string> collectedItemIds = new HashSet<string>();
+    private List<Item> collectedItems = new List<Item>();
 
     private void Awake()
     {
@@ -23,6 +24,7 @@ public class InventoryManager : MonoBehaviour
         if(!collectedItemIds.Contains(item.itemId))
         {
             collectedItemIds.Add(item.itemId);
+            collectedItems.Add(item);
             Debug.Log("Item collected: " + item.name);
         }
     }
@@ -36,5 +38,10 @@ public class InventoryManager : MonoBehaviour
     public bool HasItem(string itemId)
     {
         return collectedItemIds.Contains(itemId);
+    }
+
+    public List<Item> GetAllItems()
+    {
+        return new List<Item>(collectedItems);
     }
 }
