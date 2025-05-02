@@ -14,6 +14,7 @@ public class DialogueUI : MonoBehaviour
     [SerializeField] GameObject choiceButtonPrefab;
 
     private bool isDialogueActive = false;
+    private PlayerController playerController;
 
     private void Awake()
     {
@@ -27,11 +28,14 @@ public class DialogueUI : MonoBehaviour
 
     private void Start()
     {
+        playerController = FindFirstObjectByType<PlayerController>();
         dialoguePanel.SetActive(false);
+        isDialogueActive = false;
     }
 
     public void ShowDialogue(string speaker, string text)
     {
+        isDialogueActive = true;
         dialoguePanel.SetActive(true);
         speakerText.text = speaker;
         dialogueText.text = text;
@@ -39,6 +43,7 @@ public class DialogueUI : MonoBehaviour
 
     public void HideDialogue()
     {
+        playerController.suppressNextClick = true;
         dialogueText.text = "";
         speakerText.text = "";
         dialoguePanel.SetActive(false);

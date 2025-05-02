@@ -10,6 +10,9 @@ public class InventoryUI : MonoBehaviour
     public GameObject inventoryPanel;
     public Transform itemListContainer;
     public GameObject itemSlotPrefab;
+    
+    private bool isInventoryActive = false;
+    private PlayerController playerController;
 
     private void Awake()
     {
@@ -22,6 +25,11 @@ public class InventoryUI : MonoBehaviour
         Instance = this;
     }
 
+    private void Start()
+    {
+        playerController = FindFirstObjectByType<PlayerController>();
+    }
+
     private void Update()
     {
         if(Input.GetKeyDown(KeyCode.Return))
@@ -32,10 +40,11 @@ public class InventoryUI : MonoBehaviour
 
     public void ToggleInventory()
     {
-        bool isActive = inventoryPanel.activeSelf;
-        inventoryPanel.SetActive(!isActive);
+        inventoryPanel.SetActive(!isInventoryActive);
+        isInventoryActive = inventoryPanel.activeSelf;
+        playerController.suppressNextClick = true;
 
-        if(!isActive)
+        if(!isInventoryActive)
         {
             RefreshUI();
         }
@@ -59,5 +68,10 @@ public class InventoryUI : MonoBehaviour
                 icon.sprite = item.icon;
             }
         }
+    }
+
+    public bool IsInventoryActive()
+    {
+        return isInventoryActive;
     }
 }

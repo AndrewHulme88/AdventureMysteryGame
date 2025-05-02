@@ -15,6 +15,9 @@ public class Interactable : MonoBehaviour
     [Header("Set Flags On Interaction")]
     public string[] flagsToSet;
 
+    [Header("Walk to Point")]
+    public Transform walkToPoint;
+
     public virtual void Interact()
     {
         if (DialogueUI.Instance != null && DialogueUI.Instance.dialoguePanel.activeInHierarchy)

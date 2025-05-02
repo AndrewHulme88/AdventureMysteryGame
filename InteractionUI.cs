@@ -9,6 +9,7 @@ public class InteractionUI : MonoBehaviour
     [SerializeField] TMP_Text popupText;
 
     private bool isPopupActive = false;
+    private PlayerController playerController;
 
     private void Awake()
     {
@@ -24,6 +25,8 @@ public class InteractionUI : MonoBehaviour
     private void Start()
     {
         popupPanel.SetActive(false);
+        isPopupActive = false;
+        playerController = FindFirstObjectByType<PlayerController>();
     }
 
     private void Update()
@@ -43,6 +46,7 @@ public class InteractionUI : MonoBehaviour
 
     public void HidePopup()
     {
+        playerController.suppressNextClick = true;
         popupText.text = "";
         popupPanel.SetActive(false);
         isPopupActive = false;

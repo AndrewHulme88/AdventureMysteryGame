@@ -1,9 +1,14 @@
 using UnityEngine;
 using static UnityEditor.PlayerSettings;
+using UnityEngine.EventSystems;
+
 
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] float moveSpeed = 3f;
+
+    public bool stopMovement = true;
+    public bool suppressNextClick = false;
 
     private Vector3 targetPosition;
     private bool isMoving = false;
@@ -46,12 +51,27 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        if((DialogueUI.Instance != null && DialogueUI.Instance.IsDialogueActive()) || (InteractionUI.Instance != null && InteractionUI.Instance.IsPopupActive()))
+        if (EventSystem.current.IsPointerOverGameObject())
         {
             return;
         }
 
-        if(Input.GetMouseButtonDown(0))
+        stopMovement = DialogueUI.Instance != null && DialogueUI.Instance.IsDialogueActive() ||
+        InteractionUI.Instance != null && InteractionUI.Instance.IsPopupActive() ||
+        InventoryUI.Instance != null && InventoryUI.Instance.IsInventoryActive();
+
+        if (stopMovement)
+        {
+            return;
+        }
+
+        if(suppressNextClick)
+        {
+            suppressNextClick = false;
+            return;
+        }
+
+        if (Input.GetMouseButtonDown(0))
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
             Vector2 clickPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -67,7 +87,9 @@ public class PlayerController : MonoBehaviour
                     if(interactable.requireWalk)
                     {
                         pendingInteraction = interactable;
-                        targetPosition = interactable.transform.position;
+                        targetPosition = interactable.walkToPoint != null
+                            ? interactable.walkToPoint.position
+                            : interactable.transform.position;
                         isMoving = true;
                     }
                     else
