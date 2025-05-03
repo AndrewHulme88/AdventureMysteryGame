@@ -1,14 +1,18 @@
 using UnityEngine;
 using static UnityEditor.PlayerSettings;
 using UnityEngine.EventSystems;
+using System;
 
 
 public class PlayerController : MonoBehaviour
 {
+    public static PlayerController Instance { get; private set; }
+
     [SerializeField] float moveSpeed = 3f;
 
     public bool stopMovement = true;
     public bool suppressNextClick = false;
+    public Action OnArrival;
 
     private Vector3 targetPosition;
     private bool isMoving = false;
@@ -19,6 +23,7 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
+        Instance = this;
         rb = GetComponent<Rigidbody2D>();
         interactableLayerMask = LayerMask.GetMask("Interactable");
         groundLayerMask = LayerMask.GetMask("Ground");
@@ -35,6 +40,9 @@ public class PlayerController : MonoBehaviour
             {
                 isMoving = false;
                 rb.linearVelocity = Vector2.zero;
+
+                OnArrival?.Invoke();
+                OnArrival = null;
 
                 if(pendingInteraction != null)
                 {
@@ -108,5 +116,12 @@ public class PlayerController : MonoBehaviour
                 pendingInteraction = null;
             }
         }
+    }
+
+    public void MoveToInteract(Interactable target)
+    {
+        pendingInteraction = target;
+        targetPosition = target.walkToPoint != null ? target.walkToPoint.position : target.transform.position;
+        isMoving = true;
     }
 }

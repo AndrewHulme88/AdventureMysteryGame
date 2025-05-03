@@ -3,7 +3,7 @@ using UnityEngine;
 public class ItemRequirementInteractable : Interactable
 {
     [Header("Item Requirement")]
-    public Item requiredItem;
+    //public Item requiredItem;
     [TextArea] public string missingItemMessage = "It's locked!";
 
     [Header("On Success")]

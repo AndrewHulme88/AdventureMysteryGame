@@ -7,34 +7,37 @@ public class DoorController : MonoBehaviour
     [SerializeField] Sprite closedSprite;
     [SerializeField] Sprite openSprite;
 
-    [Header("Door Logic")]
-    public bool isLocked = false;
-    public Item requiredItem;
-    public string lockedMessage = "It's locked.";
-
     [Header("Optional Trigger On Open")]
     public GameObject[] activeateWhenOpened;
 
     private bool isOpen = false;
+    private Collider2D col;
 
-    public void TryOpen()
+    private void Start()
+    {
+        col = GetComponent<Collider2D>();
+    }
+
+    public void OpenDoor(string itemName = null, bool consumeItem = false, string successMessage = "")
     {
         if (isOpen) return;
 
-        if(isLocked && requiredItem != null && !InventoryManager.Instance.HasItem(requiredItem.itemId))
-        {
-            InteractionUI.Instance.ShowPopup(lockedMessage);
-            return;
-        }
-
-        OpenDoor();
-    }
-
-    public void OpenDoor()
-    {
         isOpen = true;
 
-        if(doorSprite != null && openSprite != null)
+        if (!string.IsNullOrEmpty(successMessage))
+        {
+            string finalMessage = itemName != null
+                ? successMessage.Replace("{itemName}", itemName)
+                : successMessage;
+            InteractionUI.Instance.ShowPopup(finalMessage);
+        }
+
+        if (consumeItem && itemName != null)
+        {
+            InventoryManager.Instance.RemoveItem(itemName);
+        }
+
+        if (doorSprite != null && openSprite != null)
         {
             doorSprite.sprite = openSprite;
         }
@@ -46,6 +49,8 @@ public class DoorController : MonoBehaviour
                 go.SetActive(true);
             }
         }
+
+        Destroy(col);
     }
     
 }

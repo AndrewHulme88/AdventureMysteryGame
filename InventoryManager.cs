@@ -32,6 +32,7 @@ public class InventoryManager : MonoBehaviour
     public void RemoveItem(string itemId)
     {
         collectedItemIds.Remove(itemId);
+        collectedItems.RemoveAll(item => item.itemId == itemId);
         Debug.Log("Item removed " + itemId);
     }
 

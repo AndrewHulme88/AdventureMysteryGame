@@ -10,6 +10,7 @@ public class InventoryUI : MonoBehaviour
     public GameObject inventoryPanel;
     public Transform itemListContainer;
     public GameObject itemSlotPrefab;
+    public Canvas canvas;
     
     private bool isInventoryActive = false;
     private PlayerController playerController;
@@ -28,6 +29,7 @@ public class InventoryUI : MonoBehaviour
     private void Start()
     {
         playerController = FindFirstObjectByType<PlayerController>();
+        inventoryPanel.SetActive(false);
     }
 
     private void Update()
@@ -40,6 +42,7 @@ public class InventoryUI : MonoBehaviour
 
     public void ToggleInventory()
     {
+        RefreshUI();
         inventoryPanel.SetActive(!isInventoryActive);
         isInventoryActive = inventoryPanel.activeSelf;
         playerController.suppressNextClick = true;
@@ -67,11 +70,21 @@ public class InventoryUI : MonoBehaviour
             {
                 icon.sprite = item.icon;
             }
+            var handler = slot.GetComponent<ItemDragManager>();
+            if (handler != null)
+            {
+                handler.item = item;
+            }
         }
     }
 
     public bool IsInventoryActive()
     {
         return isInventoryActive;
+    }
+
+    public float GetCanvasScale()
+    {
+        return canvas.scaleFactor;
     }
 }

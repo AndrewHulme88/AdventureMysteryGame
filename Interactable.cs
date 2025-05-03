@@ -1,6 +1,8 @@
+using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
-public class Interactable : MonoBehaviour
+public class Interactable : MonoBehaviour, IDropHandler
 {
     [TextArea(2, 5)] public string interactionText;
 
@@ -18,11 +20,27 @@ public class Interactable : MonoBehaviour
     [Header("Walk to Point")]
     public Transform walkToPoint;
 
+    [Header("Optional Required Item")]
+    public bool requiresItem = false;
+    public Item requiredItem;
+    [TextArea] public string successMessage = "You used {itemName}.";
+    [TextArea] public string itemRequiredMessage = "";
+    public bool consumeItemOnUse = false;
+
+    [Header("Linked Door")]
+    public DoorController linkedDoor;
+
     public virtual void Interact()
     {
         if (DialogueUI.Instance != null && DialogueUI.Instance.dialoguePanel.activeInHierarchy)
         {
             Debug.Log("Dialogue already active, ignoring new interaction.");
+            return;
+        }
+
+        if(requiresItem)
+        {
+            InteractionUI.Instance.ShowPopup(itemRequiredMessage);
             return;
         }
 
@@ -35,6 +53,11 @@ public class Interactable : MonoBehaviour
                 InteractionUI.Instance.ShowPopup(blockedMessage);
                 return;
             }
+        }
+
+        if(linkedDoor != null)
+        {
+            linkedDoor.OpenDoor();
         }
 
         if (dialogueTree != null)
@@ -60,6 +83,20 @@ public class Interactable : MonoBehaviour
                 ProgressManager.Instance.SetFlag(flag, true);
                 Debug.Log("HOHoh");
             }
+        }
+    }
+
+    public virtual void OnDrop(PointerEventData eventData)
+    {
+        var dragHandler = eventData.pointerDrag?.GetComponent<ItemDragManager>();
+
+        if(dragHandler != null && dragHandler.item == requiredItem)
+        {
+            PlayerController.Instance.MoveToInteract(this);
+        }
+        else
+        {
+            InteractionUI.Instance.ShowPopup("That doesn't work.");
         }
     }
 }
