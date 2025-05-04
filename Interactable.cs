@@ -1,8 +1,10 @@
+using NUnit.Framework;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using System.Collections.Generic;
 
-public class Interactable : MonoBehaviour, IDropHandler
+public class Interactable : MonoBehaviour
 {
     [TextArea(2, 5)] public string interactionText;
 
@@ -27,11 +29,68 @@ public class Interactable : MonoBehaviour, IDropHandler
     [TextArea] public string itemRequiredMessage = "";
     public bool consumeItemOnUse = false;
 
+    [Header("Optional Item To Give")]
+    public Item itemToGive;
+    public bool isPickup = false;
+    [TextArea] public string pickupInspectMessage = "This might be useful.";
+    public bool requireConfirmationToPickUp = true;
+
     [Header("Linked Door")]
     public DoorController linkedDoor;
 
+    [Header("Pushable")]
+    public bool isPushable = false;
+    public string pushFlag = "objectPushed";
+    public Vector3 pushedPosition;
+    public GameObject hiddenDoorToReveal;
+    [TextArea] public string pushableInspectMessage = "This might be useful.";
+
+    public List<ConditionalInteraction> conditionalInteractions;
+
     public virtual void Interact()
     {
+        if(isPushable)
+        {
+            if(ProgressManager.Instance.HasFlag(pushFlag))
+            {
+                InteractionUI.Instance.ShowPopup("It has already been moved.");
+                return;
+            }
+
+            InteractionUI.Instance.ShowYesNo(pushableInspectMessage, () =>
+            {
+                ProgressManager.Instance.SetFlag(pushFlag, true);
+                transform.position = pushedPosition;
+
+                if (hiddenDoorToReveal != null)
+                {
+                    hiddenDoorToReveal.SetActive(true);
+                }
+            });
+        }
+
+        foreach(var condition in conditionalInteractions)
+        {
+            bool hasFlag = ProgressManager.Instance.HasFlag(condition.requiredFlag);
+
+            if(hasFlag == condition.requireFlagToBeTrue)
+            {
+                if(condition.alternateDialogue != null)
+                {
+                    DialogueManager.Instance.StartDialogue(condition.alternateDialogue);
+                }
+                else if(!string.IsNullOrEmpty(condition.alternateInteractionText))
+                {
+                    InteractionUI.Instance.ShowPopup(condition.alternateInteractionText);
+                }
+
+                foreach(string flag in condition.flagsToSetOnInteract)
+                {
+                    ProgressManager.Instance.SetFlag(flag, true);
+                }
+            }
+        }
+
         if (DialogueUI.Instance != null && DialogueUI.Instance.dialoguePanel.activeInHierarchy)
         {
             Debug.Log("Dialogue already active, ignoring new interaction.");
@@ -55,7 +114,33 @@ public class Interactable : MonoBehaviour, IDropHandler
             }
         }
 
-        if(linkedDoor != null)
+        if (itemToGive != null && isPickup)
+        {
+            if(requireConfirmationToPickUp)
+            {
+                InteractionUI.Instance.ShowYesNo(pickupInspectMessage, () =>
+                {
+                    InventoryManager.Instance.AddItem(itemToGive);
+
+                    string finalMessage = string.IsNullOrWhiteSpace(itemToGive.pickupMessage)
+                        ? $"You picked up: {itemToGive.itemName}"
+                        : itemToGive.pickupMessage.Replace("{itemName}", itemToGive.itemName);
+                    
+                    InteractionUI.Instance.ShowPopup(finalMessage);
+
+                    Destroy(gameObject);
+                });
+            }
+            else
+            {
+                InventoryManager.Instance.AddItem(itemToGive);
+                InteractionUI.Instance.ShowPopup($"You picked up: {itemToGive.itemName}");
+                Destroy(gameObject);
+            }
+            return;
+        }
+
+        if (linkedDoor != null)
         {
             linkedDoor.OpenDoor();
         }
@@ -85,18 +170,14 @@ public class Interactable : MonoBehaviour, IDropHandler
             }
         }
     }
+}
 
-    public virtual void OnDrop(PointerEventData eventData)
-    {
-        var dragHandler = eventData.pointerDrag?.GetComponent<ItemDragManager>();
-
-        if(dragHandler != null && dragHandler.item == requiredItem)
-        {
-            PlayerController.Instance.MoveToInteract(this);
-        }
-        else
-        {
-            InteractionUI.Instance.ShowPopup("That doesn't work.");
-        }
-    }
+[System.Serializable]
+public class ConditionalInteraction
+{
+    public string requiredFlag;
+    public bool requireFlagToBeTrue = true;
+    [TextArea] public string alternateInteractionText;
+    public DialogueTree alternateDialogue;
+    public string[] flagsToSetOnInteract;
 }

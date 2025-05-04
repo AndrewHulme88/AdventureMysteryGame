@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 public class InteractionUI : MonoBehaviour
 {
@@ -7,6 +8,10 @@ public class InteractionUI : MonoBehaviour
 
     [SerializeField] GameObject popupPanel;
     [SerializeField] TMP_Text popupText;
+    [SerializeField] GameObject yesNoPanel;
+    [SerializeField] TMP_Text yesNoText;
+    [SerializeField] Button yesButton;
+    [SerializeField] Button noButton;
 
     private bool isPopupActive = false;
     private PlayerController playerController;
@@ -50,6 +55,26 @@ public class InteractionUI : MonoBehaviour
         popupText.text = "";
         popupPanel.SetActive(false);
         isPopupActive = false;
+    }
+
+    public void ShowYesNo(string message, System.Action onYes, System.Action onNo = null)
+    {
+        yesNoText.text = message;
+        yesNoPanel.SetActive(true);
+        yesButton.onClick.RemoveAllListeners();
+        noButton.onClick.RemoveAllListeners();
+
+        yesButton.onClick.AddListener(() =>
+        {
+            yesNoPanel.SetActive(false);         
+            onYes.Invoke();
+        });
+
+        noButton.onClick.AddListener(() =>
+        {
+            yesNoPanel.SetActive(false);
+            onNo.Invoke();
+        });
     }
 
     public bool IsPopupActive()
