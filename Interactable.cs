@@ -28,6 +28,8 @@ public class Interactable : MonoBehaviour
     [TextArea] public string successMessage = "You used {itemName}.";
     [TextArea] public string itemRequiredMessage = "";
     public bool consumeItemOnUse = false;
+    public string setFlagOnItemUse;
+    public bool flagValue = true;
 
     [Header("Optional Item To Give")]
     public Item itemToGive;

@@ -6,6 +6,8 @@ public class ProgressManager : MonoBehaviour
     public static ProgressManager Instance { get; private set; }
 
     private Dictionary<string, bool> flags = new Dictionary<string, bool>();
+    public delegate void FlagChanged(string flagName, bool value);
+    public event FlagChanged OnFlagChanged;
 
     private void Awake()
     {
@@ -23,6 +25,8 @@ public class ProgressManager : MonoBehaviour
     {
         flags[flagName] = value;
         Debug.Log($"Flag set: {flagName} = {value}");
+
+        OnFlagChanged?.Invoke(flagName, value);
     }
 
     public bool HasFlag(string flagName)

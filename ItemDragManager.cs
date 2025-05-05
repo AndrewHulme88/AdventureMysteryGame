@@ -30,22 +30,6 @@ public class ItemDragManager : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         canvasGroup.blocksRaycasts = true;
         rectTransform.anchoredPosition = Vector2.zero;
 
-        //GameObject dropTarget = eventData.pointerEnter;
-
-        //if(dropTarget != null)
-        //{
-        //    var dropHandler = dropTarget.GetComponent<ItemDragManager>();
-        //    Debug.Log("Pointer entered: " + eventData.pointerEnter?.name);
-
-
-        //    if (dropHandler != null && dropHandler != this)
-        //    {
-        //        TryCombineWith(dropHandler.item);
-        //        InventoryUI.Instance.RefreshUI();
-        //        return;
-        //    }
-        //}
-
         PointerEventData pointerData = new PointerEventData(EventSystem.current)
         {
             position = Input.mousePosition
@@ -89,8 +73,17 @@ public class ItemDragManager : MonoBehaviour, IBeginDragHandler, IDragHandler, I
                             : item.successMessage;
 
                         string finalMessage = messageTemplate.Replace("{itemName}", item.itemName);
-
                         InteractionUI.Instance.ShowPopup(finalMessage);
+
+                        if (!string.IsNullOrWhiteSpace(interactable.setFlagOnItemUse))
+                        {
+                            ProgressManager.Instance.SetFlag(interactable.setFlagOnItemUse, interactable.flagValue);
+                        }
+
+                        if(interactable.linkedDoor != null)
+                        {
+                            interactable.linkedDoor.OpenDoor();
+                        }
 
                         if (interactable.consumeItemOnUse)
                         {
@@ -115,10 +108,6 @@ public class ItemDragManager : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             {
                 InteractionUI.Instance.ShowPopup("That doesn't work.");
             }
-        }
-        else
-        {
-            Debug.Log("Nothing interactable hit.");
         }
 
         InventoryUI.Instance.RefreshUI();

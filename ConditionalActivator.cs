@@ -9,9 +9,31 @@ public class ConditionalActivator : MonoBehaviour
 
     private void Start()
     {
+        ProgressManager.Instance.OnFlagChanged += HandleFlagChanged;
+        CheckFlag();
+    }
+
+    private void OnDestroy()
+    {
+        if(ProgressManager.Instance != null)
+        {
+            ProgressManager.Instance.OnFlagChanged -= HandleFlagChanged;
+        }
+    }
+
+    private void HandleFlagChanged(string flagName, bool value)
+    {
+        if(flagName == this.requiredFlag)
+        {
+            CheckFlag();
+        }
+    }
+
+    private void CheckFlag()
+    {
         bool flagState = ProgressManager.Instance.HasFlag(requiredFlag);
 
-        if(flagState == requireFlagToBeTrue)
+        if (flagState == requireFlagToBeTrue)
         {
             foreach (var go in objectsToEnable) go.SetActive(true);
             foreach (var go in objectsToDisable) go.SetActive(false);
