@@ -20,6 +20,8 @@ public class PlayerController : MonoBehaviour
     private int interactableLayerMask;
     private int groundLayerMask;
     private Interactable pendingInteraction;
+    private Animator anim;
+    private SpriteRenderer spriteRenderer;
 
     private void Awake()
     {
@@ -29,6 +31,12 @@ public class PlayerController : MonoBehaviour
         groundLayerMask = LayerMask.GetMask("Ground");
     }
 
+    private void Start()
+    {
+        anim = GetComponent<Animator>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
+    }
+
     private void FixedUpdate()
     {
         if (isMoving)
@@ -36,15 +44,28 @@ public class PlayerController : MonoBehaviour
             Vector2 direction = (targetPosition - transform.position).normalized;
             Vector2 newPosition = rb.position + direction * moveSpeed * Time.fixedDeltaTime;
 
-            if (Vector2.Distance(transform.position, targetPosition) < 0.1f)
+            if(direction.x > 0.5f)
+            {
+                transform.localScale = new Vector3(1, 1, 1);
+            }
+            else if(direction.x < -0.5f)
+            {
+                transform.localScale = new Vector3(-1, 1, 1);
+            }
+
+            anim.Play("Walk");
+
+            if (Vector2.Distance(transform.position, targetPosition) < 0.5f)
             {
                 isMoving = false;
                 rb.linearVelocity = Vector2.zero;
 
+                anim.Play("Idle");
+
                 OnArrival?.Invoke();
                 OnArrival = null;
 
-                if(pendingInteraction != null)
+                if (pendingInteraction != null)
                 {
                     pendingInteraction.Interact();
                     pendingInteraction = null;
@@ -54,6 +75,10 @@ public class PlayerController : MonoBehaviour
             {
                 rb.MovePosition(newPosition);
             }
+        }
+        else
+        {
+            anim.Play("Idle");
         }
     }
 
@@ -114,6 +139,21 @@ public class PlayerController : MonoBehaviour
                 targetPosition = groundHit.point;
                 isMoving = true;
                 pendingInteraction = null;
+            }
+        }
+
+        if(Input.GetKey(KeyCode.Space))
+        {
+            foreach(var i in FindObjectsByType<Interactable>(FindObjectsSortMode.None))
+            {
+                i.ShowIcon(true);
+            }
+        }
+        else
+        {
+            foreach(var i in FindObjectsByType<Interactable>(FindObjectsSortMode.None))
+            {
+                i.ShowIcon(false);
             }
         }
     }

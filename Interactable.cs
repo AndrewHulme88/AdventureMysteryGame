@@ -6,6 +6,12 @@ using System.Collections.Generic;
 
 public class Interactable : MonoBehaviour
 {
+    public enum InteractableType { Inspect, Door, Talk, None }
+
+    [Header("Highlighting")]
+    public InteractableType interactableType = InteractableType.Inspect;
+    private GameObject iconInstance;
+
     [TextArea(2, 5)] public string interactionText;
 
     public bool requireWalk = false;
@@ -48,6 +54,22 @@ public class Interactable : MonoBehaviour
     [TextArea] public string pushableInspectMessage = "This might be useful.";
 
     public List<ConditionalInteraction> conditionalInteractions;
+
+    private void Start()
+    {
+        var iconPrefab = InteractableIconManager.Instance.sharedIconPrefab;
+        if (iconPrefab == null || interactableType == InteractableType.None) return;
+
+        iconInstance = Instantiate(iconPrefab, transform.position, Quaternion.identity, transform);
+        iconInstance.SetActive(false);
+
+        var iconRenderer = iconInstance.GetComponentInChildren<SpriteRenderer>();
+
+        if(iconRenderer != null)
+        {
+            iconRenderer.sprite = GetIconForType(interactableType);
+        }
+    }
 
     public virtual void Interact()
     {
@@ -130,6 +152,11 @@ public class Interactable : MonoBehaviour
                     
                     InteractionUI.Instance.ShowPopup(finalMessage);
 
+                    if(!string.IsNullOrWhiteSpace(setFlagOnItemUse))
+                    {
+                        ProgressManager.Instance.SetFlag(setFlagOnItemUse);
+                    }
+
                     Destroy(gameObject);
                 });
             }
@@ -171,6 +198,18 @@ public class Interactable : MonoBehaviour
                 Debug.Log("HOHoh");
             }
         }
+    }
+
+    private Sprite GetIconForType(InteractableType type)
+    {
+        return InteractableIconManager.Instance.GetIconSprite(type);
+    }
+
+    public void ShowIcon(bool show)
+    {
+        if (iconInstance == null || interactableType == InteractableType.None) return;
+
+        iconInstance.SetActive(show);
     }
 }
 

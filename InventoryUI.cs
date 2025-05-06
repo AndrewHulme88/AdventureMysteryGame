@@ -34,7 +34,7 @@ public class InventoryUI : MonoBehaviour
 
     private void Update()
     {
-        if(Input.GetKeyDown(KeyCode.Return))
+        if(Input.GetMouseButtonDown(1))
         {
             ToggleInventory();
         }
