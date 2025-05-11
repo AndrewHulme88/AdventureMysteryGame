@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class DialogueManager : MonoBehaviour
@@ -8,6 +9,9 @@ public class DialogueManager : MonoBehaviour
 
     private DialogueNode currentNode;
     private bool waitingForChoice = false;
+
+    private const string EndDialogueChoiceId = "END_DIALOGUE_CHOICE";
+
 
     private void Awake()
     {
@@ -68,11 +72,24 @@ public class DialogueManager : MonoBehaviour
         {
             waitingForChoice = true;
         }
-        else if(currentNode.choices != null && currentNode.choices.Count > 0)
+        else if (currentNode.choices != null && currentNode.choices.Count > 0)
         {
-            waitingForChoice = true;
+            var tempChoices = new List<DialogueChoice>(currentNode.choices);
+
+            tempChoices.Add(new DialogueChoice
+            {
+                choiceText = "Exit.",
+                nextNodeId = EndDialogueChoiceId
+            });
+
+            DialogueUI.Instance.speakerText.text = "";
+            DialogueUI.Instance.dialogueText.text = "";
+            DialogueUI.Instance.ShowChoices(tempChoices.ToArray(), HandleChoice);
+
+            waitingForChoice = false; 
         }
-        else if(currentNode.isEndNode)
+
+        else if (currentNode.isEndNode)
         {
             waitingForChoice = true;
         }
@@ -80,6 +97,12 @@ public class DialogueManager : MonoBehaviour
 
     private void HandleChoice(string nextNodeId)
     {
+        if (nextNodeId == EndDialogueChoiceId)
+        {
+            EndDialogue();
+            return;
+        }
+
         currentNode = currentTree.GetNodeById(nextNodeId);
         ShowCurrentNode();
     }
