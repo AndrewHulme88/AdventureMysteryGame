@@ -2,12 +2,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class ItemDragManager : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class ItemDragManager : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IPointerDownHandler, IPointerUpHandler
 {
     public Item item;
 
     private RectTransform rectTransform;
     private CanvasGroup canvasGroup;
+    private bool isDragging = false;
+    private Vector2 mouseDownPos;
+    private bool pointerDown = false;
+    private float dragThreshold = 2f;
+    private float timeThreshold = 0.2f;
+    private float mouseDownTime;
 
     private void Awake()
     {
@@ -15,14 +21,51 @@ public class ItemDragManager : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         canvasGroup = GetComponent<CanvasGroup>();
     }
 
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        pointerDown = true;
+        mouseDownPos = eventData.position;
+        mouseDownTime = Time.time;
+    }
+
+    public void OnPointerUp(PointerEventData eventData)
+    {
+        if (!pointerDown) return;
+        pointerDown = false;
+
+        float dist = Vector2.Distance(eventData.position, mouseDownPos);
+        float heldTime = Time.time - mouseDownTime;
+
+        if (!isDragging && dist < dragThreshold && heldTime < timeThreshold)
+        {
+            Debug.Log("Item clicked");
+            InventoryUI.Instance.ShowItemDescription(item); 
+        }
+    }
+
     public void OnBeginDrag(PointerEventData eventData)
     {
+        isDragging = false;
+        mouseDownPos = eventData.position;
+        mouseDownTime = Time.time;
         canvasGroup.blocksRaycasts = false;
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        rectTransform.anchoredPosition += eventData.delta / InventoryUI.Instance.GetCanvasScale();
+        if (!isDragging)
+        {
+            float dist = Vector2.Distance(eventData.position, mouseDownPos);
+            if (dist > dragThreshold || Time.time - mouseDownTime > timeThreshold)
+            {
+                isDragging = true;
+            }
+        }
+
+        if (isDragging)
+        {
+            rectTransform.anchoredPosition += eventData.delta / InventoryUI.Instance.GetCanvasScale();
+        }
     }
 
     public void OnEndDrag(PointerEventData eventData)

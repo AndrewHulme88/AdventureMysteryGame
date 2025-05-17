@@ -7,6 +7,9 @@ public class InventoryUI : MonoBehaviour
 {
     public static InventoryUI Instance { get; private set; }
 
+    [SerializeField] GameObject itemDescriptionPanel;
+    [SerializeField] TMP_Text itemDescriptionText;
+
     public GameObject inventoryPanel;
     public Transform itemListContainer;
     public GameObject itemSlotPrefab;
@@ -14,6 +17,7 @@ public class InventoryUI : MonoBehaviour
     
     private bool isInventoryActive = false;
     private PlayerController playerController;
+    private bool isDescriptionActive = false;
 
     private void Awake()
     {
@@ -38,6 +42,19 @@ public class InventoryUI : MonoBehaviour
         {
             ToggleInventory();
         }
+
+        if(isDescriptionActive && Input.GetMouseButtonDown(0) || Input.GetMouseButtonDown(1))
+        {
+            itemDescriptionPanel.SetActive(false);
+            isDescriptionActive = false;
+        }
+    }
+
+    public void ShowItemDescription(Item item)
+    {
+        itemDescriptionText.text = item.description;
+        itemDescriptionPanel.SetActive(true);
+        isDescriptionActive = true;
     }
 
     public void ToggleInventory()

@@ -46,6 +46,11 @@ public class Interactable : MonoBehaviour
     [Header("Linked Door")]
     public DoorController linkedDoor;
 
+    [Header("Optional Image Display")]
+    public Sprite interactionImage;
+    public bool showImageBeforePickup = false;
+    public bool showImageOnly = false;
+
     [Header("Pushable")]
     public bool isPushable = false;
     public string pushFlag = "objectPushed";
@@ -138,34 +143,31 @@ public class Interactable : MonoBehaviour
             }
         }
 
+        if (interactionImage != null && showImageOnly)
+        {
+            InteractionUI.Instance.ShowImagePrompt(interactionText, interactionImage, null);
+            return;
+        }
+
         if (itemToGive != null && isPickup)
         {
-            if(requireConfirmationToPickUp)
+            if (interactionImage != null && showImageBeforePickup)
             {
-                InteractionUI.Instance.ShowYesNo(pickupInspectMessage, () =>
-                {
-                    InventoryManager.Instance.AddItem(itemToGive);
+                string combinedMessage = $"{interactionText}\n\n{pickupInspectMessage}";
 
-                    string finalMessage = string.IsNullOrWhiteSpace(itemToGive.pickupMessage)
-                        ? $"You picked up: {itemToGive.itemName}"
-                        : itemToGive.pickupMessage.Replace("{itemName}", itemToGive.itemName);
-                    
-                    InteractionUI.Instance.ShowPopup(finalMessage);
-
-                    if(!string.IsNullOrWhiteSpace(setFlagOnItemUse))
-                    {
-                        ProgressManager.Instance.SetFlag(setFlagOnItemUse);
-                    }
-
-                    Destroy(gameObject);
-                });
+                InteractionUI.Instance.ShowImageWithYesNo(
+                    combinedMessage,
+                    interactionImage,
+                    HandlePickupConfirmed,
+                    () => { /* Optional cancel logic */ }
+                );
+                return;
             }
             else
             {
-                InventoryManager.Instance.AddItem(itemToGive);
-                InteractionUI.Instance.ShowPopup($"You picked up: {itemToGive.itemName}");
-                Destroy(gameObject);
+                InteractionUI.Instance.ShowYesNo(pickupInspectMessage, HandlePickupConfirmed);
             }
+
             return;
         }
 
@@ -199,6 +201,25 @@ public class Interactable : MonoBehaviour
             }
         }
     }
+
+    private void HandlePickupConfirmed()
+    {
+        InventoryManager.Instance.AddItem(itemToGive);
+
+        string finalMessage = string.IsNullOrWhiteSpace(itemToGive.pickupMessage)
+            ? $"You picked up: {itemToGive.itemName}"
+            : itemToGive.pickupMessage.Replace("{itemName}", itemToGive.itemName);
+
+        InteractionUI.Instance.ShowPopup(finalMessage);
+
+        if (!string.IsNullOrWhiteSpace(setFlagOnItemUse))
+        {
+            ProgressManager.Instance.SetFlag(setFlagOnItemUse);
+        }
+
+        Destroy(gameObject);
+    }
+
 
     private Sprite GetIconForType(InteractableType type)
     {
